@@ -2,6 +2,8 @@
 
 extern crate test;
 
+use smallvec::*;
+
 use std::sync::{Arc};
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -11,7 +13,7 @@ use test::Bencher;
 pub struct World {
     pub sex: Vec<bool>,
     pub alive: Vec<bool>,
-    pub childs: Vec<Vec<usize>>,
+    pub childs: Vec<SmallVec<[usize; 10]>>,
     pub parents: Vec<(Option<usize>, Option<usize>)>,
     pub alive_count: usize,
     pub total_count: usize,
@@ -43,7 +45,7 @@ impl World {
         let sex = false; //todo: random
         self.sex.push(sex);
         self.alive.push(true);
-        self.childs.push(vec![]);
+        self.childs.push(smallvec![]);
         self.parents.push((parent_male, parent_female));
 
         let id = self.total_count;
@@ -52,11 +54,11 @@ impl World {
         self.total_count = self.total_count + 1;
 
         if let Some(pm) = parent_male {
-            self.childs.get_mut(pm).expect(&format!("Invalid parent id {} passed to create_person.", pm)).push(id);
+            self.childs.get_mut(pm).unwrap_or_else(|| panic!("Invalid parent id {} passed to create_person.", pm)).push(id);
         }
 
         if let Some(pf) = parent_female {
-            self.childs.get_mut(pf).expect(&format!("Invalid parent id {} passed to create_person.", pf)).push(id);
+            self.childs.get_mut(pf).unwrap_or_else(|| panic!("Invalid parent id {} passed to create_person.", pf)).push(id);
         }
 
         id
